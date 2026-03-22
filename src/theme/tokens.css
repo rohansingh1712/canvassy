@@ -1,0 +1,56 @@
+:root {
+  /* Base Colors */
+  --color-canvas-bg: #F5F0E8;
+  --color-card-bg: #FDFAF5;
+  --color-card-summary-bg: #F0EBE1;
+  --color-card-border: #E2D9CC;
+  --color-text-primary: #2A1F1A;
+  --color-text-secondary: #8C7B6E;
+  --color-text-muted: #B5A99A;
+
+  /* Accent (Dusty Rose) */
+  --color-accent: #C08B85;
+  --color-accent-hover: #AE7A74;
+  --color-accent-soft: #EDD9D6;
+
+  /* Functional Colors */
+  --color-word-count-warn: #C9924A;
+  --color-word-count-limit: #B85C4A;
+  --color-connection-default: #B5A99A;
+  --color-connection-selected: #C08B85;
+
+  /* Typography */
+  --font-writing: 'Lora', Georgia, serif;
+  --font-ui: 'Inter', system-ui, sans-serif;
+
+  /* Type Scale */
+  --text-card-body: 16px;
+  --text-card-summary: 13px;
+  --text-label: 11px;
+  --text-connection-label: 12px;
+
+  /* Spacing */
+  --card-width: 320px;
+  --card-border-radius: 12px;
+  --header-height: 28px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  color: var(--color-text-primary);
+  background: var(--color-canvas-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}

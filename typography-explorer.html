@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typography Explorer</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      grid-template-rows: 1fr auto;
+      height: 100vh;
+    }
+
+    .controls {
+      grid-row: 1 / 3;
+      background: #242424;
+      padding: 24px;
+      overflow-y: auto;
+      border-right: 1px solid #333;
+    }
+
+    .preview-container {
+      background: var(--preview-bg);
+      overflow-y: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      transition: background-color 0.3s;
+    }
+
+    .preview {
+      width: 100%;
+      max-width: var(--text-width);
+      padding: var(--padding);
+      font-family: var(--font-family);
+      font-size: var(--font-size);
+      font-weight: var(--font-weight);
+      line-height: var(--line-height);
+      letter-spacing: var(--letter-spacing);
+      word-spacing: var(--word-spacing);
+      color: var(--text-color);
+      transition: all 0.2s ease;
+    }
+
+    .preview h1 {
+      font-size: calc(var(--font-size) * 1.8);
+      font-weight: 600;
+      margin-bottom: calc(var(--paragraph-spacing) * 1.5);
+      line-height: 1.2;
+    }
+
+    .preview h2 {
+      font-size: calc(var(--font-size) * 1.4);
+      font-weight: 600;
+      margin-top: calc(var(--paragraph-spacing) * 2);
+      margin-bottom: var(--paragraph-spacing);
+      line-height: 1.3;
+    }
+
+    .preview h3 {
+      font-size: calc(var(--font-size) * 1.2);
+      font-weight: 600;
+      margin-top: calc(var(--paragraph-spacing) * 1.5);
+      margin-bottom: calc(var(--paragraph-spacing) * 0.8);
+      line-height: 1.3;
+    }
+
+    .preview p {
+      margin-bottom: var(--paragraph-spacing);
+    }
+
+    .preview p:last-child {
+      margin-bottom: 0;
+    }
+
+    .preview ul,
+    .preview ol {
+      margin-bottom: var(--paragraph-spacing);
+      padding-left: calc(var(--font-size) * 1.5);
+    }
+
+    .preview li {
+      margin-bottom: var(--list-item-spacing);
+      padding-left: calc(var(--font-size) * 0.3);
+    }
+
+    .preview li:last-child {
+      margin-bottom: 0;
+    }
+
+    .preview ul {
+      list-style-type: disc;
+    }
+
+    .preview ol {
+      list-style-type: decimal;
+    }
+
+    .prompt-section {
+      background: #2a2a2a;
+      padding: 20px 24px;
+      border-top: 1px solid #333;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .prompt-output {
+      flex: 1;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      color: #d0d0d0;
+      line-height: 1.6;
+      min-height: 60px;
+    }
+
+    .copy-btn {
+      background: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      color: #e0e0e0;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #4a4a4a;
+      border-color: #5a5a5a;
+    }
+
+    .copy-btn:active {
+      transform: scale(0.98);
+    }
+
+    .copy-btn.copied {
+      background: #2d5a2d;
+      border-color: #3d6a3d;
+    }
+
+    h3 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #888;
+      margin: 24px 0 12px;
+    }
+
+    h3:first-child {
+      margin-top: 0;
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #b0b0b0;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .value {
+      color: #d0d0d0;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: #3a3a3a;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    select {
+      width: 100%;
+      background: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      color: #e0e0e0;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .preset-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .preset-btn {
+      background: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      color: #e0e0e0;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .preset-btn:hover {
+      background: #4a4a4a;
+      border-color: #5a5a5a;
+    }
+
+    .preset-btn:active {
+      transform: scale(0.98);
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 36px;
+      border: 1px solid #4a4a4a;
+      border-radius: 4px;
+      cursor: pointer;
+      background: #3a3a3a;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: none;
+      border-radius: 2px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #1a1a1a;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #4a4a4a;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #5a5a5a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <div class="preset-buttons">
+        <button class="preset-btn" onclick="applyPreset('default')">Default</button>
+        <button class="preset-btn" onclick="applyPreset('focused')">Focused</button>
+        <button class="preset-btn" onclick="applyPreset('comfortable')">Comfortable</button>
+        <button class="preset-btn" onclick="applyPreset('compact')">Compact</button>
+        <button class="preset-btn" onclick="applyPreset('classic')">Classic</button>
+        <button class="preset-btn" onclick="applyPreset('modern')">Modern</button>
+      </div>
+
+      <h3>Font</h3>
+      <div class="control-group">
+        <label>Font Family</label>
+        <select id="fontFamily" onchange="updateState('fontFamily', this.value)">
+          <option value="Georgia, serif">Georgia (Serif)</option>
+          <option value="'Charter', 'Bitstream Charter', serif">Charter (Serif)</option>
+          <option value="'Iowan Old Style', 'Palatino Linotype', serif">Iowan Old Style (Serif)</option>
+          <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">System (Sans-serif)</option>
+          <option value="'Inter', -apple-system, sans-serif">Inter (Sans-serif)</option>
+          <option value="'SF Mono', 'Monaco', 'Consolas', monospace">SF Mono (Monospace)</option>
+          <option value="'iA Writer Mono', 'Courier New', monospace">iA Writer Mono</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Font Weight <span class="value" id="fontWeightValue">400</span></label>
+        <input type="range" id="fontWeight" min="300" max="700" step="100" value="400"
+               oninput="updateState('fontWeight', this.value)">
+      </div>
+
+      <h3>Size & Spacing</h3>
+      <div class="control-group">
+        <label>Font Size <span class="value" id="fontSizeValue">18px</span></label>
+        <input type="range" id="fontSize" min="14" max="28" step="1" value="18"
+               oninput="updateState('fontSize', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>Line Height <span class="value" id="lineHeightValue">1.6</span></label>
+        <input type="range" id="lineHeight" min="1.2" max="2.2" step="0.05" value="1.6"
+               oninput="updateState('lineHeight', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>Letter Spacing <span class="value" id="letterSpacingValue">0px</span></label>
+        <input type="range" id="letterSpacing" min="-0.05" max="0.1" step="0.005" value="0"
+               oninput="updateState('letterSpacing', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>Word Spacing <span class="value" id="wordSpacingValue">0px</span></label>
+        <input type="range" id="wordSpacing" min="-0.1" max="0.3" step="0.01" value="0"
+               oninput="updateState('wordSpacing', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>Paragraph Spacing <span class="value" id="paragraphSpacingValue">1.5em</span></label>
+        <input type="range" id="paragraphSpacing" min="0.5" max="3" step="0.1" value="1.5"
+               oninput="updateState('paragraphSpacing', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>List Item Spacing <span class="value" id="listItemSpacingValue">0.75em</span></label>
+        <input type="range" id="listItemSpacing" min="0" max="2" step="0.05" value="0.75"
+               oninput="updateState('listItemSpacing', this.value)">
+      </div>
+
+      <h3>Layout</h3>
+      <div class="control-group">
+        <label>Text Width <span class="value" id="textWidthValue">680px</span></label>
+        <input type="range" id="textWidth" min="500" max="900" step="10" value="680"
+               oninput="updateState('textWidth', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>Padding <span class="value" id="paddingValue">40px</span></label>
+        <input type="range" id="padding" min="0" max="80" step="4" value="40"
+               oninput="updateState('padding', this.value)">
+      </div>
+
+      <h3>Colors</h3>
+      <div class="control-group">
+        <label>Text Color</label>
+        <input type="color" id="textColor" value="#1a1a1a"
+               oninput="updateState('textColor', this.value)">
+      </div>
+
+      <div class="control-group">
+        <label>Background Color</label>
+        <input type="color" id="backgroundColor" value="#fafafa"
+               oninput="updateState('backgroundColor', this.value)">
+      </div>
+    </div>
+
+    <div class="preview-container">
+      <div class="preview" id="preview">
+        <h1>The Art of Clear Thinking</h1>
+
+        <p>Writing is thinking. The blank page is not an obstacle to overcome, but a space where thoughts take shape. Each word chosen, each sentence crafted, is an act of clarification—transforming the nebulous into the concrete.</p>
+
+        <p>The best writing environments understand this. They don't distract with unnecessary features or constrain with rigid templates. Instead, they provide just enough structure to support the work, then step back and let the thinking happen.</p>
+
+        <h2>The Role of Space</h2>
+
+        <p>White space is not empty—it's breathing room for ideas. When text is given room to exist on the page, it becomes easier to read, easier to think through, easier to revise. Generous margins and ample line spacing aren't aesthetic choices alone; they're cognitive aids.</p>
+
+        <h3>Key Principles of Spatial Design</h3>
+
+        <ul>
+          <li>Give ideas room to breathe with generous margins and line spacing</li>
+          <li>Use whitespace as a tool for focus, not just decoration</li>
+          <li>Create clear visual hierarchy through consistent spacing patterns</li>
+          <li>Allow flexibility for different working modes and preferences</li>
+        </ul>
+
+        <p>Consider the difference between a cramped paragraph and one with space around it. The former feels urgent, demanding. The latter invites contemplation. Both have their place, but for deep work, for the kind of thinking that requires sustained attention, space matters.</p>
+
+        <h2>Typography as Interface</h2>
+
+        <p>Every typographic decision is an interface decision. Font size affects readability. Line height affects how our eyes move down the page. Letter spacing affects how quickly we can parse words. These aren't just visual properties—they're the mechanics of how we engage with text.</p>
+
+        <h3>Essential Typography Considerations</h3>
+
+        <ol>
+          <li>Choose fonts that don't fatigue the eye during extended reading sessions</li>
+          <li>Set line heights that allow smooth vertical scanning without losing your place</li>
+          <li>Limit line length to maintain comfortable reading rhythm (45-75 characters ideal)</li>
+          <li>Adjust letter spacing subtly—small changes make significant differences</li>
+        </ol>
+
+        <p>The right typography doesn't call attention to itself. It disappears, allowing the words to come forward. It serves the content without becoming the content. This is harder than it sounds.</p>
+
+        <p>Finding the right balance takes experimentation. What works for one person might not work for another. What feels perfect on a Monday morning might feel stifling by Friday afternoon. The best systems allow for adjustment, for fine-tuning, for personal preference.</p>
+      </div>
+    </div>
+
+    <div class="prompt-section">
+      <div class="prompt-output" id="promptOutput"></div>
+      <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy Prompt</button>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULTS = {
+      fontFamily: "Georgia, serif",
+      fontWeight: 400,
+      fontSize: 18,
+      lineHeight: 1.6,
+      letterSpacing: 0,
+      wordSpacing: 0,
+      paragraphSpacing: 1.5,
+      listItemSpacing: 0.75,
+      textWidth: 680,
+      padding: 40,
+      textColor: "#1a1a1a",
+      backgroundColor: "#fafafa"
+    };
+
+    const PRESETS = {
+      default: { ...DEFAULTS },
+      focused: {
+        fontFamily: "Georgia, serif",
+        fontWeight: 400,
+        fontSize: 20,
+        lineHeight: 1.7,
+        letterSpacing: 0,
+        wordSpacing: 0,
+        paragraphSpacing: 2,
+        listItemSpacing: 1,
+        textWidth: 600,
+        padding: 60,
+        textColor: "#0a0a0a",
+        backgroundColor: "#ffffff"
+      },
+      comfortable: {
+        fontFamily: "'Charter', 'Bitstream Charter', serif",
+        fontWeight: 400,
+        fontSize: 19,
+        lineHeight: 1.8,
+        letterSpacing: 0.005,
+        wordSpacing: 0.02,
+        paragraphSpacing: 2.2,
+        listItemSpacing: 1.1,
+        textWidth: 720,
+        padding: 50,
+        textColor: "#2a2a2a",
+        backgroundColor: "#f5f5f5"
+      },
+      compact: {
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontWeight: 400,
+        fontSize: 16,
+        lineHeight: 1.5,
+        letterSpacing: -0.01,
+        wordSpacing: -0.02,
+        paragraphSpacing: 1.2,
+        listItemSpacing: 0.4,
+        textWidth: 800,
+        padding: 30,
+        textColor: "#1a1a1a",
+        backgroundColor: "#fafafa"
+      },
+      classic: {
+        fontFamily: "'Iowan Old Style', 'Palatino Linotype', serif",
+        fontWeight: 400,
+        fontSize: 18,
+        lineHeight: 1.65,
+        letterSpacing: 0.01,
+        wordSpacing: 0,
+        paragraphSpacing: 1.8,
+        listItemSpacing: 0.9,
+        textWidth: 650,
+        padding: 60,
+        textColor: "#1a1a1a",
+        backgroundColor: "#f9f7f4"
+      },
+      modern: {
+        fontFamily: "'Inter', -apple-system, sans-serif",
+        fontWeight: 400,
+        fontSize: 17,
+        lineHeight: 1.6,
+        letterSpacing: -0.01,
+        wordSpacing: 0,
+        paragraphSpacing: 1.6,
+        listItemSpacing: 0.8,
+        textWidth: 700,
+        padding: 40,
+        textColor: "#0f0f0f",
+        backgroundColor: "#ffffff"
+      }
+    };
+
+    let state = { ...DEFAULTS };
+
+    function updateState(key, value) {
+      state[key] = parseFloat(value) || value;
+      updateAll();
+    }
+
+    function applyPreset(presetName) {
+      state = { ...PRESETS[presetName] };
+      syncControlsToState();
+      updateAll();
+    }
+
+    function syncControlsToState() {
+      document.getElementById('fontFamily').value = state.fontFamily;
+      document.getElementById('fontWeight').value = state.fontWeight;
+      document.getElementById('fontSize').value = state.fontSize;
+      document.getElementById('lineHeight').value = state.lineHeight;
+      document.getElementById('letterSpacing').value = state.letterSpacing;
+      document.getElementById('wordSpacing').value = state.wordSpacing;
+      document.getElementById('paragraphSpacing').value = state.paragraphSpacing;
+      document.getElementById('listItemSpacing').value = state.listItemSpacing;
+      document.getElementById('textWidth').value = state.textWidth;
+      document.getElementById('padding').value = state.padding;
+      document.getElementById('textColor').value = state.textColor;
+      document.getElementById('backgroundColor').value = state.backgroundColor;
+
+      // Update value displays
+      document.getElementById('fontWeightValue').textContent = state.fontWeight;
+      document.getElementById('fontSizeValue').textContent = state.fontSize + 'px';
+      document.getElementById('lineHeightValue').textContent = state.lineHeight.toFixed(2);
+      document.getElementById('letterSpacingValue').textContent = (state.letterSpacing * state.fontSize).toFixed(1) + 'px';
+      document.getElementById('wordSpacingValue').textContent = (state.wordSpacing * state.fontSize).toFixed(1) + 'px';
+      document.getElementById('paragraphSpacingValue').textContent = state.paragraphSpacing.toFixed(1) + 'em';
+      document.getElementById('listItemSpacingValue').textContent = state.listItemSpacing.toFixed(2) + 'em';
+      document.getElementById('textWidthValue').textContent = state.textWidth + 'px';
+      document.getElementById('paddingValue').textContent = state.padding + 'px';
+    }
+
+    function updateAll() {
+      renderPreview();
+      updatePrompt();
+      updateValueDisplays();
+    }
+
+    function renderPreview() {
+      const root = document.documentElement;
+      root.style.setProperty('--font-family', state.fontFamily);
+      root.style.setProperty('--font-weight', state.fontWeight);
+      root.style.setProperty('--font-size', state.fontSize + 'px');
+      root.style.setProperty('--line-height', state.lineHeight);
+      root.style.setProperty('--letter-spacing', (state.letterSpacing * state.fontSize) + 'px');
+      root.style.setProperty('--word-spacing', (state.wordSpacing * state.fontSize) + 'px');
+      root.style.setProperty('--paragraph-spacing', state.paragraphSpacing + 'em');
+      root.style.setProperty('--list-item-spacing', state.listItemSpacing + 'em');
+      root.style.setProperty('--text-width', state.textWidth + 'px');
+      root.style.setProperty('--padding', state.padding + 'px');
+      root.style.setProperty('--text-color', state.textColor);
+      root.style.setProperty('--preview-bg', state.backgroundColor);
+    }
+
+    function updateValueDisplays() {
+      document.getElementById('fontWeightValue').textContent = state.fontWeight;
+      document.getElementById('fontSizeValue').textContent = state.fontSize + 'px';
+      document.getElementById('lineHeightValue').textContent = state.lineHeight.toFixed(2);
+      document.getElementById('letterSpacingValue').textContent = (state.letterSpacing * state.fontSize).toFixed(1) + 'px';
+      document.getElementById('wordSpacingValue').textContent = (state.wordSpacing * state.fontSize).toFixed(1) + 'px';
+      document.getElementById('paragraphSpacingValue').textContent = state.paragraphSpacing.toFixed(1) + 'em';
+      document.getElementById('listItemSpacingValue').textContent = state.listItemSpacing.toFixed(2) + 'em';
+      document.getElementById('textWidthValue').textContent = state.textWidth + 'px';
+      document.getElementById('paddingValue').textContent = state.padding + 'px';
+    }
+
+    function updatePrompt() {
+      const parts = [];
+      const fontName = state.fontFamily.includes('Georgia') ? 'Georgia' :
+                      state.fontFamily.includes('Charter') ? 'Charter' :
+                      state.fontFamily.includes('Iowan') ? 'Iowan Old Style' :
+                      state.fontFamily.includes('apple-system') ? 'system font' :
+                      state.fontFamily.includes('Inter') ? 'Inter' :
+                      state.fontFamily.includes('SF Mono') ? 'SF Mono' :
+                      state.fontFamily.includes('iA Writer') ? 'iA Writer Mono' :
+                      'custom font';
+
+      // Font
+      if (state.fontFamily !== DEFAULTS.fontFamily) {
+        parts.push(`using ${fontName}`);
+      }
+      if (state.fontWeight !== DEFAULTS.fontWeight) {
+        const weightName = state.fontWeight === 300 ? 'light' :
+                          state.fontWeight === 500 ? 'medium' :
+                          state.fontWeight === 600 ? 'semibold' :
+                          state.fontWeight === 700 ? 'bold' : '';
+        if (weightName) parts.push(`${weightName} weight`);
+      }
+
+      // Size
+      if (state.fontSize !== DEFAULTS.fontSize) {
+        const sizeDesc = state.fontSize >= 22 ? 'large' :
+                        state.fontSize >= 19 ? 'comfortable' :
+                        state.fontSize <= 15 ? 'compact' : '';
+        if (sizeDesc) parts.push(`${sizeDesc} text size (${state.fontSize}px)`);
+        else parts.push(`${state.fontSize}px font size`);
+      }
+
+      // Line height
+      if (Math.abs(state.lineHeight - DEFAULTS.lineHeight) > 0.05) {
+        const lhDesc = state.lineHeight >= 1.8 ? 'generous' :
+                       state.lineHeight <= 1.4 ? 'tight' : '';
+        if (lhDesc) parts.push(`${lhDesc} line height (${state.lineHeight.toFixed(2)})`);
+        else parts.push(`${state.lineHeight.toFixed(2)} line height`);
+      }
+
+      // Letter spacing
+      if (Math.abs(state.letterSpacing) > 0.01) {
+        const lsDesc = state.letterSpacing > 0 ? 'increased' : 'decreased';
+        parts.push(`${lsDesc} letter spacing (${(state.letterSpacing * state.fontSize).toFixed(1)}px)`);
+      }
+
+      // Word spacing
+      if (Math.abs(state.wordSpacing) > 0.01) {
+        const wsDesc = state.wordSpacing > 0 ? 'increased' : 'decreased';
+        parts.push(`${wsDesc} word spacing`);
+      }
+
+      // Paragraph spacing
+      if (Math.abs(state.paragraphSpacing - DEFAULTS.paragraphSpacing) > 0.2) {
+        const psDesc = state.paragraphSpacing >= 2 ? 'generous' :
+                       state.paragraphSpacing <= 1.2 ? 'tight' : '';
+        if (psDesc) parts.push(`${psDesc} paragraph spacing (${state.paragraphSpacing.toFixed(1)}em)`);
+        else parts.push(`${state.paragraphSpacing.toFixed(1)}em paragraph spacing`);
+      }
+
+      // List item spacing
+      if (Math.abs(state.listItemSpacing - DEFAULTS.listItemSpacing) > 0.15) {
+        const lisDesc = state.listItemSpacing >= 1 ? 'generous' :
+                        state.listItemSpacing <= 0.4 ? 'tight' :
+                        state.listItemSpacing === 0 ? 'no extra' : '';
+        if (lisDesc) parts.push(`${lisDesc} list item spacing (${state.listItemSpacing.toFixed(2)}em)`);
+        else parts.push(`${state.listItemSpacing.toFixed(2)}em list item spacing`);
+      }
+
+      // Text width
+      if (state.textWidth !== DEFAULTS.textWidth) {
+        const widthDesc = state.textWidth <= 600 ? 'narrow measure' :
+                         state.textWidth >= 750 ? 'wide measure' : '';
+        if (widthDesc) parts.push(`${widthDesc} (${state.textWidth}px max width)`);
+        else parts.push(`${state.textWidth}px max text width`);
+      }
+
+      // Padding
+      if (state.padding !== DEFAULTS.padding) {
+        const padDesc = state.padding >= 60 ? 'generous' :
+                       state.padding <= 30 ? 'minimal' : '';
+        if (padDesc) parts.push(`${padDesc} padding (${state.padding}px)`);
+        else parts.push(`${state.padding}px padding`);
+      }
+
+      // Colors
+      if (state.textColor !== DEFAULTS.textColor) {
+        parts.push(`text color ${state.textColor}`);
+      }
+      if (state.backgroundColor !== DEFAULTS.backgroundColor) {
+        parts.push(`background color ${state.backgroundColor}`);
+      }
+
+      const prompt = parts.length > 0
+        ? `Configure the full-screen editor with ${parts.join(', ')}.`
+        : `Using default typography settings: ${DEFAULTS.fontSize}px Georgia, ${DEFAULTS.lineHeight} line height, ${DEFAULTS.textWidth}px max width.`;
+
+      document.getElementById('promptOutput').textContent = prompt;
+    }
+
+    function copyPrompt() {
+      const text = document.getElementById('promptOutput').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy Prompt';
+          btn.classList.remove('copied');
+        }, 2000);
+      });
+    }
+
+    // Initialize
+    updateAll();
+  </script>
+</body>
+</html>
