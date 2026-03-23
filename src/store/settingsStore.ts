@@ -19,7 +19,7 @@ const STORAGE_KEY = 'canvassy-settings';
 const DEFAULT_SETTINGS = {
   arrowWidth: 2,
   arrowHeadSize: 6,
-  summaryMode: 'zoom' as const,
+  summaryMode: 'toggle' as const,
   showSummaries: false,
   cardWidth: 'medium' as const,
 };

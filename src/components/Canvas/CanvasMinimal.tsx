@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import ReactFlow, { ReactFlowProvider, useReactFlow, ConnectionMode, Controls } from 'reactflow';
+import ReactFlow, { ReactFlowProvider, useReactFlow, ConnectionMode, Controls, useStore } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useCanvasStore } from '../../store/canvasStore';
 import { useSettingsStore } from '../../store/settingsStore';
@@ -23,6 +23,9 @@ function CanvasContent() {
   const { screenToFlowPosition } = useReactFlow();
   const lastClickTime = useRef(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Get current zoom level
+  const zoom = useStore((state) => state.transform[2]);
 
   useEffect(() => {
     loadFromLocalStorage();
@@ -172,6 +175,7 @@ function CanvasContent() {
           onNodeDragStop={handleNodeDragStop}
           connectionMode={ConnectionMode.Loose}
           connectionRadius={50}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.7 }}
           fitView
           onPaneClick={handlePaneClick}
           nodeTypes={nodeTypes}
@@ -188,7 +192,25 @@ function CanvasContent() {
           selectNodesOnDrag={false}
           deleteKeyCode={null}
         >
+          {/* Zoom percentage indicator */}
+          <div style={{
+            position: 'absolute',
+            bottom: '102px',
+            left: '14px',
+            background: '#FDFAF5',
+            border: '1px solid #E2D9CC',
+            borderRadius: '6px',
+            padding: '6px 12px',
+            fontSize: '13px',
+            fontWeight: '500',
+            color: '#5C5347',
+            zIndex: 5,
+          }}>
+            {Math.round(zoom * 100)}%
+          </div>
+
           <Controls
+            showInteractive={false}
             style={{
               background: '#FDFAF5',
               border: '1px solid #E2D9CC',
