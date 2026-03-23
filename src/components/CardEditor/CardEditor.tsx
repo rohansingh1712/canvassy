@@ -31,6 +31,21 @@ export function CardEditor({ cardId, initialBody, onClose }: CardEditorProps) {
   const [isAnimating, setIsAnimating] = useState(true);
   const editorRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced autosave function
+  const debouncedSave = useCallback((markdown: string, words: number) => {
+    // Clear existing timer
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    // Set new timer
+    autosaveTimerRef.current = setTimeout(() => {
+      const extractedSummary = extractSummary(markdown);
+      updateCard(cardId, { body: markdown, summary: extractedSummary, wordCount: words });
+    }, 1000); // 1 second debounce
+  }, [cardId, updateCard]);
 
   const editor = useEditor({
     extensions: [
@@ -58,6 +73,9 @@ export function CardEditor({ cardId, initialBody, onClose }: CardEditorProps) {
     onUpdate: ({ editor }) => {
       const markdown = editor.storage.markdown.getMarkdown();
       setBodyText(markdown);
+      // Autosave with debounce
+      const words = countWords(editor.state.doc.textContent);
+      debouncedSave(markdown, words);
     },
     autofocus: 'end',
   });
@@ -72,6 +90,12 @@ export function CardEditor({ cardId, initialBody, onClose }: CardEditorProps) {
 
   const handleClose = useCallback(() => {
     if (!editor) return;
+
+    // Clear any pending autosave
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
 
     // Get the markdown content from the editor
     const body = editor.storage.markdown.getMarkdown();
@@ -154,6 +178,15 @@ export function CardEditor({ cardId, initialBody, onClose }: CardEditorProps) {
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [handleClose]);
+
+  // Cleanup autosave timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, []);
 
   return createPortal(
     <div

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Handle, Position, NodeProps, useStore } from 'reactflow';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -18,6 +18,7 @@ export function Card({ id, data }: NodeProps<CardData>) {
   const [bodyText, setBodyText] = useState(data?.body || '');
   const deletePopoverRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get current zoom level and summary mode settings
   const zoom = useStore((state) => state.transform[2]);
@@ -41,6 +42,20 @@ export function Card({ id, data }: NodeProps<CardData>) {
 
   const { deleteCard, updateCard } = useCanvasStore();
 
+  // Debounced autosave function
+  const debouncedSave = useCallback((markdown: string, words: number) => {
+    // Clear existing timer
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    // Set new timer
+    autosaveTimerRef.current = setTimeout(() => {
+      const extractedSummary = extractSummary(markdown);
+      updateCard(id, { body: markdown, summary: extractedSummary, wordCount: words, isNew: false });
+    }, 1000); // 1 second debounce
+  }, [id, updateCard]);
+
   // TipTap editor for inline editing
   const inlineEditor = useEditor({
     extensions: [
@@ -58,6 +73,7 @@ export function Card({ id, data }: NodeProps<CardData>) {
     ],
     content: bodyText,
     editable: !isSpacebarHeld,
+    autofocus: data?.isNew ? 'end' : false,
     editorProps: {
       attributes: {
         class: 'card-inline-editor',
@@ -66,6 +82,9 @@ export function Card({ id, data }: NodeProps<CardData>) {
     onUpdate: ({ editor }) => {
       const markdown = editor.storage.markdown.getMarkdown();
       setBodyText(markdown);
+      // Autosave with debounce
+      const words = countWords(editor.state.doc.textContent);
+      debouncedSave(markdown, words);
     },
     onBlur: () => {
       handleBodyBlur();
@@ -90,9 +109,23 @@ export function Card({ id, data }: NodeProps<CardData>) {
     }
   }, [isSpacebarHeld, inlineEditor]);
 
-  // Cleanup editor on unmount
+  // Clear isNew flag after editor is focused (for newly created cards)
+  useEffect(() => {
+    if (data?.isNew && inlineEditor && inlineEditor.isFocused) {
+      // Clear the flag after a brief delay to ensure autofocus has completed
+      const timer = setTimeout(() => {
+        updateCard(id, { isNew: false });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [data?.isNew, inlineEditor, inlineEditor?.isFocused, id, updateCard]);
+
+  // Cleanup editor and autosave timer on unmount
   useEffect(() => {
     return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
       if (inlineEditor) {
         inlineEditor.destroy();
       }
@@ -195,11 +228,18 @@ export function Card({ id, data }: NodeProps<CardData>) {
   };
 
   const handleBodyBlur = () => {
+    // Clear any pending autosave
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+
+    // Immediate save on blur
     if (inlineEditor) {
       const markdown = inlineEditor.storage.markdown.getMarkdown();
       setBodyText(markdown);
       const extractedSummary = extractSummary(markdown);
-      updateCard(id, { body: markdown, summary: extractedSummary, wordCount });
+      updateCard(id, { body: markdown, summary: extractedSummary, wordCount, isNew: false });
     }
   };
 

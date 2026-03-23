@@ -6,6 +6,7 @@ export interface CardData {
   body: string;
   summary: string;
   wordCount: number;
+  isNew?: boolean;
 }
 
 interface CanvasState {
@@ -88,6 +89,7 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
         body: '',
         summary: '',
         wordCount: 0,
+        isNew: true,
       },
     };
 
